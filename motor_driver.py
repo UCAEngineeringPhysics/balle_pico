@@ -7,8 +7,6 @@ class MotorDriver:
         self.inb_pin = Pin(inb_id, Pin.OUT)
         self.pwm_pin = PWM(Pin(pwm_id))
         self.pwm_pin.freq(1000)
-        # Stop motor
-        self.pwm_pin.duty_u16(0)
         self.disable()
 
     def stop(self):
@@ -35,8 +33,8 @@ if __name__ == "__main__":
     from time import sleep
 
     # SETUP
-    md = MotorDriver(ina_id=6, inb_id=7, pwm_id=8)  # left
-    # md = MotorDriver(ina_id=2, inb_id=3, pwm_id=4)  # right
+    # md = MotorDriver(ina_id=6, inb_id=7, pwm_id=8)  # left
+    md = MotorDriver(ina_id=2, inb_id=3, pwm_id=4)  # right
 
     # LOOP
     for i in range(100):
