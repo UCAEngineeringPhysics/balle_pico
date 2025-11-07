@@ -1,54 +1,53 @@
 from wheel_controller import WheelController
-import sys
 
 
 class DiffDriveController:
-    def __init__(self, left_ids: tuple, right_ids: tuple) -> None:
-        # Wheels
+    def __init__(self, left_ids, right_ids) -> None:
         self.left_wheel = WheelController(*left_ids)
         self.right_wheel = WheelController(*right_ids)
 
-        # Properties
-        self.WHEEL_SEP = 0.52  # wheel separation distance
         # Variables
-        self.lin_vel = 0.0
-        self.ang_vel = 0.0
+        self.meas_lin_vel = 0.0
+        self.meas_ang_vel = 0.0
 
-    def get_vel(self):
+        # Constants
+        self.WHEEL_SEP = 0.382  # wheel separation in meters
+
+    def get_vels(self):
         """
-        Compute and transmit robot velocity
-        Note - if transmitting activated, Pico may stop responding.
-        Nuke the Pico if further changes on code are needed.
+        Get actual velocities
         """
-        self.lin_vel = 0.5 * (
-            self.left_wheel.lin_vel + self.right_wheel.lin_vel
+        self.meas_lin_vel = 0.5 * (
+            self.left_wheel.meas_lin_vel + self.right_wheel.meas_lin_vel
         )  # robot's linear velocity
-        self.ang_vel = (
-            self.right_wheel.lin_vel - self.left_wheel.lin_vel
+        self.meas_ang_vel = (
+            self.right_wheel.meas_lin_vel - self.left_wheel.meas_lin_vel
         ) / self.WHEEL_SEP  # robot's angular velocity
-        return self.lin_vel, self.ang_vel
+        return self.meas_lin_vel, self.meas_ang_vel
 
-    def set_vel(self, target_lin_vel, target_ang_vel):
-        left_target = target_lin_vel - 0.5 * (target_ang_vel * self.WHEEL_SEP)
-        right_target = target_lin_vel + 0.5 * (target_ang_vel * self.WHEEL_SEP)
-        self.left_wheel.set_lin_vel(left_target)
-        self.right_wheel.set_lin_vel(right_target)
+    def set_vels(self, target_lin_vel, target_ang_vel):
+        """
+        Set reference velocities
+        """
+        left_ref_lin_vel = target_lin_vel - 0.5 * (target_ang_vel * self.WHEEL_SEP)
+        right_ref_lin_vel = target_lin_vel + 0.5 * (target_ang_vel * self.WHEEL_SEP)
+        self.left_wheel.set_velocity(left_ref_lin_vel)
+        self.right_wheel.set_velocity(right_ref_lin_vel)
 
 
-# TEST
 if __name__ == "__main__":
-    from time import sleep
+    from utime import sleep
+    from math import pi
 
-    bot = DiffDriveController(
+    # SETUP
+    ddc = DiffDriveController(
         left_ids=((6, 7, 8), (11, 10)), right_ids=((2, 3, 4), (21, 20))
     )
-    for v in range(1, 11):
-        bot.set_vel(v / 10, 0.0)
-        sleep(1.5)
-        print(f"target velocity: {v/10}, actual velocity: {bot.get_vel()}")
-    for v in reversed(range(10)):
-        bot.set_vel(v / 10, 0.0)
-        sleep(1.5)
-        print(f"target velocity: {v/10}, actual velocity: {bot.get_vel()}")
-    bot.set_vel(0.0, 0.0)
-    sleep(1)
+
+    for i in range(100):
+        if i == 24:  # step up @ t=0.5 s
+            ddc.set_vels(-0.0, 0.7)
+        meas_lin_vel, meas_ang_vel = ddc.get_vels()
+        print(f"Velocity={meas_lin_vel} m/s, {meas_ang_vel} rad/s")
+        sleep(0.02)
+    ddc.set_vels(0.0, 0.0)

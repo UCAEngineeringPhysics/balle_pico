@@ -33,6 +33,7 @@ cmd_vel_listener.register(sys.stdin, select.POLLIN)
 target_lin_vel, target_ang_vel = 0.0, 0.0
 tic = ticks_us()
 
+
 # --- Servo motion sequences ---
 def grab_sequence():
     servo_arm.duty_ns(2300000)  # lower arm
@@ -44,11 +45,13 @@ def grab_sequence():
     servo_arm.duty_ns(1650000)  # raise arm
     sleep(0.5)
 
+
 def rest_sequence():
     servo_claw.duty_ns(1800000)
     sleep(0.5)
     servo_arm.duty_ns(1650000)
     sleep(0.5)
+
 
 # --- MAIN LOOP ---
 while True:
@@ -73,16 +76,14 @@ while True:
 
         # Handle velocity commands: "lin,ang"
         if "," in line:
-
             lin, ang = [float(x) for x in line.split(",")]
             target_lin_vel = lin
             target_ang_vel = ang
-            balle.set_vel(target_lin_vel, target_ang_vel)
-
+            balle.set_vels(target_lin_vel, target_ang_vel)
 
     # Send velocity feedback periodically
     toc = ticks_us()
     if toc - tic >= 10000:
-        meas_lin_vel, meas_ang_vel = balle.get_vel()
+        meas_lin_vel, meas_ang_vel = balle.get_vels()
         sys.stdout.write(f"{meas_lin_vel}, {meas_ang_vel}\n")
         tic = ticks_us()

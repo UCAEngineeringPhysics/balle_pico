@@ -7,10 +7,10 @@ class WheelController(WheelDriver):
         # Pin configuration
         super().__init__(driver_ids, encoder_ids)  # call super class's "__init__"
         # Constants
-        self.k_p = 0.55
-        self.k_i = 0.02
-        self.k_d = 0.4
-        self.freq_reg = 50  # Hz
+        self.k_p = 0.5
+        self.k_i = 0.0
+        self.k_d = 0.01
+        self.freq_reg = 25  # Hz
         # Variables
         self.reg_vel_counter = 0
         self.duty = 0.0
@@ -23,10 +23,10 @@ class WheelController(WheelDriver):
         self.vel_reg_timer = Timer(
             freq=self.freq_reg,
             mode=Timer.PERIODIC,
-            callback=self.regulate_velocity,
+            callback=self._regulate_velocity,
         )
 
-    def regulate_velocity(self, timer):
+    def _regulate_velocity(self, timer):
         if self.ref_lin_vel == 0.0 or self.reg_vel_counter > self.freq_reg:
             self.stop()
             self.prev_error = 0.0
@@ -51,7 +51,7 @@ class WheelController(WheelDriver):
                 self.backward(-self.duty)
             self.reg_vel_counter += 1
 
-    def set_wheel_velocity(self, ref_lin_vel):
+    def set_velocity(self, ref_lin_vel):
         if ref_lin_vel is not self.ref_lin_vel:
             self.ref_lin_vel = ref_lin_vel
             self.prev_error = 0.0
@@ -64,15 +64,19 @@ if __name__ == "__main__":
     from utime import sleep
     from machine import Pin
 
+    # wc = WheelController(
+    #     driver_ids=(6, 7, 8),
+    #     encoder_ids=(11, 10),
+    # )
     wc = WheelController(
-        driver_ids=(6, 7, 8),
-        encoder_ids=(11, 10),
+        driver_ids=(2, 3, 4),
+        encoder_ids=(21, 20),
     )
     for i in range(100):
         if i == 24:  # step up @ t=0.5 s
-            wc.set_wheel_velocity(0.7)
+            wc.set_velocity(0.5)
         elif i == 74:  # step down @ t=1.5 s
-            wc.set_wheel_velocity(0.0)
+            wc.set_velocity(0.0)
         print(
             f"Reference velocity={wc.ref_lin_vel} m/s, Measured velocity={wc.meas_lin_vel} m/s"
         )
