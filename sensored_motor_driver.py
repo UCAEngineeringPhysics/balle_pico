@@ -1,60 +1,92 @@
 from motor_driver import MotorDriver
 from machine import Pin
 
+
 class SensoredMotorDriver(MotorDriver):
-    
-    def __init__(self, drive_pin_ids, encoder_pin_ids, ab=1):
+    def __init__(self, driver_pins, encoder_pins):
         # Pin configuration
-        super().__init__(*drive_pin_ids)  # call super class's "__init__"
-        self.enca_pin = Pin(encoder_pin_ids[0], Pin.IN, Pin.PULL_UP)  # yellow  
-        self.encb_pin = Pin(encoder_pin_ids[1], Pin.IN, Pin.PULL_UP)  # white
-        self.enca_pin.irq(trigger=Pin.IRQ_RISING, handler=self.update_counts)
+        super().__init__(*driver_pins)
+        self.enca = Pin(encoder_pins[0], Pin.IN)
+        self.encb = Pin(encoder_pins[1], Pin.IN)
+        self.enca.irq(
+            trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._update_counts_a
+        )
+        self.enca.irq(
+            trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._update_counts_b
+        )
         # Variables
-        self.pulses = 0
+        self._enca_val = self.enca.value()
+        self._encb_val = self.encb.value()
+        self.encoder_counts = 0
         # Properties
-        self.AB = ab  # encoder channel order, 1: A rise first, -1: B rise first
-        self.PPR = 16  # pulses per revolution, PPR * 4 = CPR
-        self.GEAR_RATIO = 102.08  # speed reduction rate, v_wheel = v_motor / GEAR_RATIO
-        self.WHEEL_RADIUS = 0.075  # diameter in mm -> radius in m  
-    
-    def update_counts(self, pin):
-        if self.encb_pin.value() == self.enca_pin.value():  # A channel RISE later than B channel
-            self.pulses -= self.AB
+        self.cpr = 64  # pulses per revolution, PPR * 4 = CPR
+        self.gear_ratio = (
+            102.083  # speed reduction rate, v_wheel = v_motor / GEAR_RATIO
+        )
+
+    def _update_counts_a(self, pin):
+        self._enca_val = pin.value()
+        if self._enca_val == 1:
+            if self._encb_val == 0:  # a=1, b=0
+                self.encoder_counts += 1
+            else:  # a=1, b=1
+                self.encoder_counts -= 1
         else:
-            self.pulses += self.AB
-        
-if __name__ == '__main__':
+            if self._encb_val == 0:  # a=0, b=0
+                self.encoder_counts -= 1
+            else:  # a=0, b=1
+                self.encoder_counts += 1
+
+    def _update_counts_b(self, pin):
+        self._encb_val = pin.value()
+        if self._encb_val == 1:
+            if self._enca_val == 0:  # b=1, a=0
+                self.encoder_counts -= 1
+            else:  # b=1, a=1
+                self.encoder_counts += 1
+        else:
+            if self._enca_val == 0:  # b=0, a=0
+                self.encoder_counts += 1
+            else:  # b=0, a=1
+                self.encoder_counts -= 1
+
+    def reset_encoder_counts(self):
+        self.encoder_counts = 0
+
+    # def measure_velocity(self, timer):
+    #     delta_counts = self.encoder_counts - self.prev_counts
+    #     self.prev_counts = self.encoder_counts  # UPDATE prev_counts
+    #     counts_per_sec = delta_counts * self.vel_meas_freq  # delta_c / delta_t
+    #     orig_rev_per_sec = counts_per_sec / self.cpr
+    #     orig_rad_per_sec = orig_rev_per_sec * 2 * pi  # original motor shaft velocity
+    #     self.meas_ang_vel = orig_rad_per_sec / self.gear_ratio
+    #     self.meas_lin_vel = self.meas_ang_vel * self.meas_radius
+
+
+if __name__ == "__main__":
     from time import sleep
-    from math import pi
-    smd = SensoredMotorDriver((2, 3, 4), (21, 20), 1)
-    prev_counts = 0
 
-    # Following computation can be wrapped in a Timer callback
-    for d in range(200):  # ramp up
-        smd.forward(int(65025 / 200 * d))
-        sleep(0.02)
-        pulses_inc = smd.pulses - prev_counts
-        prev_counts = smd.pulses
-        revs_inc = pulses_inc / smd.PPR
-        rads_inc = revs_inc * 2 * pi
-        ang_vel_motor = rads_inc / 0.02  # motor angular velocity
-        ang_vel_wheel = ang_vel_motor / smd.GEAR_RATIO  # wheel angular velocity
-        print(f"wheel angular velocity: {ang_vel_wheel} rad/s")
-        lin_vel = ang_vel_wheel * smd.WHEEL_RADIUS
-        print(f"wheel linear velocity: {lin_vel} m/s")
-        
-    for d in reversed(range(200)):  # ramp down
-        smd.forward(int(65025 / 200 * d))
-        sleep(0.02)
-        pulses_inc = smd.pulses - prev_counts
-        prev_counts = smd.pulses
-        revs_inc = pulses_inc / smd.PPR
-        rads_inc = revs_inc * 2 * pi
-        ang_vel_motor = rads_inc / 0.02  # motor angular velocity
-        ang_vel_wheel = ang_vel_motor / smd.GEAR_RATIO  # wheel angular velocity
-        print(f"wheel angular velocity: {ang_vel_wheel} rad/s")
-        lin_vel = ang_vel_wheel * smd.WHEEL_RADIUS
-        print(f"wheel linear velocity: {lin_vel} m/s")
+    # SETUP
+    smd = SensoredMotorDriver((2, 3, 4), (21, 20))
 
-    smd.stop()
-    
+    # LOOP
+    for i in range(100):
+        smd.forward((i + 1) / 100)
+        print(f"f, dc: {i}%, enc_cnt: {smd.encoder_counts}")
+        sleep(4 / 100)  # 4 seconds to ramp up
+    for i in reversed(range(100)):
+        smd.forward((i + 1) / 100)
+        print(f"f, dc: {i}%, enc_cnt: {smd.encoder_counts}")
+        sleep(4 / 100)  # 4 seconds to ramp down
+    # Backwardly ramp up and down
+    for i in range(100):
+        smd.backward((i + 1) / 100)
+        print(f"b, dc: {i}%, enc_cnt: {smd.encoder_counts}")
+        sleep(4 / 100)  # 4 seconds to ramp up
+    for i in reversed(range(100)):
+        smd.backward((i + 1) / 100)
+        print(f"b, dc: {i}%, enc_cnt: {smd.encoder_counts}")
+        sleep(4 / 100)  # 4 seconds to ramp down
+
+    # TERMINATE
+    smd.disable()
