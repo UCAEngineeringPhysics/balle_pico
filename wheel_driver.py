@@ -2,51 +2,64 @@ from sensored_motor_driver import SensoredMotorDriver
 from machine import Timer
 from math import pi
 
+
 class WheelDriver(SensoredMotorDriver):
-    
     def __init__(self, driver_ids, encoder_ids):
         # Pin configuration
-        super().__init__(driver_ids, encoder_ids)  # call super class's "__init__"
-        self.vel_probe = Timer(mode=Timer.PERIODIC, freq=100, callback=self.exam_velocity)
+        super().__init__(driver_ids, encoder_ids)
         # Variables
-        self.ang_vel = 0.
-        self.lin_vel = 0.
-        self.prev_pulses = 0
+        self.prev_counts = 0
+        self.meas_lin_vel = 0.0
+        self.meas_ang_vel = 0.0
         # Properties
-        self.WHEEL_RADIUS = 0.075  # diameter in mm -> radius in m  
-    
-    def exam_velocity(self, timer):
-        delta_pulses = self.pulses - self.prev_pulses
-        self.prev_pulses = self.pulses
-        delta_revolutions = delta_pulses / self.PPR
-        delta_radians = delta_revolutions * 2 * pi
-        ang_vel_mtr = delta_radians / 0.01  # compute velocity every 0.01 seconds
-        self.ang_vel = ang_vel_mtr / self.GEAR_RATIO
-        self.lin_vel = self.ang_vel * self.WHEEL_RADIUS
+        self.cpr = 64
+        self.gear_ratio = 102.083
+        self.wheel_radius = 0.075  # diameter in mm -> radius in m
+        self.freq_meas = 100  # Hz
 
-if __name__ == '__main__':
-    from time import sleep
-    # w = WheelDriver((2, 3, 4), (20, 21))
-    w = WheelDriver((6, 7, 8), (11, 10))
-    prev_counts = 0
+        # Init timer for velocity probing
+        self.vel_meas_timer = Timer(
+            mode=Timer.PERIODIC,
+            freq=self.freq_meas,
+            callback=self._measure_velocity,
+        )
 
-    # Forward
-    for d in range(200):  # ramp up
-        w.forward(int(65025 / 200 * d))
-        sleep(0.02)
-        print(f"wheel velocity: \n\tangular: {w.ang_vel} rad/s, linear: {w.lin_vel} m/s")
-    for d in reversed(range(200)):  # ramp down
-        w.forward(int(65025 / 200 * d))
-        sleep(0.02)
-        print(f"wheel velocity: \n\tangular: {w.ang_vel} rad/s, linear: {w.lin_vel} m/s")
-    # Reverse
-    for d in range(200):  # ramp up
-        w.backward(int(65025 / 200 * d))
-        sleep(0.02)
-        print(f"wheel velocity: \n\tangular: {w.ang_vel} rad/s, linear: {w.lin_vel} m/s")
-    for d in reversed(range(200)):  # ramp down
-        w.backward(int(65025 / 200 * d))
-        sleep(0.02)
-        print(f"wheel velocity: \n\tangular: {w.ang_vel} rad/s, linear: {w.lin_vel} m/s")
+    def _measure_velocity(self, timer):
+        curr_counts = self.encoder_counts
+        delta_counts = curr_counts - self.prev_counts
+        counts_per_sec = delta_counts * self.freq_meas  # delta_c / delta_t
+        orig_rev_per_sec = counts_per_sec / self.cpr
+        orig_rad_per_sec = orig_rev_per_sec * 2 * pi  # original motor shaft velocity
+        self.meas_ang_vel = orig_rad_per_sec / self.gear_ratio
+        self.meas_lin_vel = self.meas_ang_vel * self.wheel_radius
+        self.prev_counts = curr_counts  # UPDATE prev_counts
 
-    w.stop()
+
+if __name__ == "__main__":
+    from utime import sleep
+
+    # SETUP
+    # wd = WheelDriver((6, 7, 8), (11, 10))  # left
+    wd = WheelDriver((2, 3, 4), (21, 20))  # right
+
+    # LOOP
+    for i in range(100):
+        wd.forward((i + 1) / 100)
+        print(f"angular velocity={wd.meas_ang_vel}, linear velocity={wd.meas_lin_vel}")
+        sleep(4 / 100)  # 4 seconds to ramp up
+    for i in reversed(range(100)):
+        wd.forward((i + 1) / 100)
+        print(f"angular velocity={wd.meas_ang_vel}, linear velocity={wd.meas_lin_vel}")
+        sleep(4 / 100)  # 4 seconds to ramp down
+    for i in range(100):
+        wd.backward((i + 1) / 100)
+        print(f"angular velocity={wd.meas_ang_vel}, linear velocity={wd.meas_lin_vel}")
+        sleep(4 / 100)  # 4 seconds to ramp up
+    for i in reversed(range(100)):
+        wd.backward((i + 1) / 100)
+        print(f"angular velocity={wd.meas_ang_vel}, linear velocity={wd.meas_lin_vel}")
+        sleep(4 / 100)  # 4 seconds to ramp down
+
+    # TERMINATE
+    wd.disable()
+    print("Wheel driver disabled")
