@@ -30,10 +30,10 @@ while True:
         if len(buffer) == 2:
             target_lin_vel = float(buffer[0])
             target_ang_vel = float(buffer[1])
-            balle.set_vel(target_lin_vel, target_ang_vel)
+            balle.set_vels(target_lin_vel, target_ang_vel)
     toc = ticks_us()
     if toc - tic >= 10000:
-        meas_lin_vel, meas_ang_vel = balle.get_vel()
+        meas_lin_vel, meas_ang_vel = balle.get_vels()
         out_msg = f"{meas_lin_vel}, {meas_ang_vel}\n"
 #         out_msg = "PICO\n"
         sys.stdout.write(out_msg)
