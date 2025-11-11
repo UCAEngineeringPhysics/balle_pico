@@ -9,8 +9,8 @@ class WheelController(WheelDriver):
         # Constants
         self.k_p = 0.5
         self.k_i = 0.0
-        self.k_d = 0.01
-        self.freq_reg = 25  # Hz
+        self.k_d = 0.5
+        self.freq_reg = 50  # Hz
         # Variables
         self.reg_vel_counter = 0
         self.duty = 0.0

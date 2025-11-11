@@ -11,7 +11,7 @@ class DiffDriveController:
         self.meas_ang_vel = 0.0
 
         # Constants
-        self.WHEEL_SEP = 0.382  # wheel separation in meters
+        self.WHEEL_SEP = 0.52  # wheel separation in meters
 
     def get_vels(self):
         """
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     for i in range(100):
         if i == 24:  # step up @ t=0.5 s
-            ddc.set_vels(-0.0, 0.7)
+            ddc.set_vels(-0.1, 0.7)
         meas_lin_vel, meas_ang_vel = ddc.get_vels()
         print(f"Velocity={meas_lin_vel} m/s, {meas_ang_vel} rad/s")
         sleep(0.02)

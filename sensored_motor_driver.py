@@ -80,6 +80,6 @@ if __name__ == "__main__":
         print(f"b, dc: {i}%, enc_cnt: {smd.encoder_counts}")
         sleep(4 / 100)  # 4 seconds to ramp down
 
-    # TERMINATE
+    # TERMINATE THE CHICKEN NOODLE SOUP
     smd.disable()
     print("Motor driver disabled")
