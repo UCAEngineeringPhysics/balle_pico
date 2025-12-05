@@ -38,15 +38,16 @@ class DiffDriveController:
 if __name__ == "__main__":
     from utime import sleep
     from math import pi
-
+    from machine import freq
+    freq(300_000_000)
     # SETUP
     ddc = DiffDriveController(
         left_ids=((6, 7, 8), (11, 10)), right_ids=((2, 3, 4), (21, 20))
     )
 
-    for i in range(100):
-        if i == 24:  # step up @ t=0.5 s
-            ddc.set_vels(-0.1, 0.7)
+    for i in range(500):
+        if i >= 24:  # step up @ t=0.5 s
+            ddc.set_vels(0.4, 0.0)
         meas_lin_vel, meas_ang_vel = ddc.get_vels()
         print(f"Velocity={meas_lin_vel} m/s, {meas_ang_vel} rad/s")
         sleep(0.02)
