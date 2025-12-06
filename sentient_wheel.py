@@ -9,8 +9,8 @@ class SentientWheel(EncodedMotor):
         # Constants
         self.wheel_radius = 0.075  # m
         self.gear_ratio = 102.083
-        self.cpr = 64  # CPR = PPR * 4
-        self.meas_freq = 100  # Hz
+        self.ppr = 16  # CPR = PPR * 4
+        self.meas_freq = 25  # Hz
         # Velocity measuring timer
         self.vel_meas_timer = Timer(
             freq=self.meas_freq,
@@ -28,7 +28,7 @@ class SentientWheel(EncodedMotor):
         delta_counts = curr_counts - self.prev_counts
         self.prev_counts = curr_counts  # UPDATE previous counts
         counts_per_sec = delta_counts * self.meas_freq  # delta_c / delta_t
-        orig_rev_per_sec = counts_per_sec / self.cpr
+        orig_rev_per_sec = counts_per_sec / self.ppr
         orig_rad_per_sec = orig_rev_per_sec * 2 * pi  # original motor shaft velocity
         self.meas_ang_vel = orig_rad_per_sec / self.gear_ratio
         self.meas_lin_vel = self.meas_ang_vel * self.wheel_radius
