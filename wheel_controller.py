@@ -7,9 +7,9 @@ class WheelController(WheelDriver):
         # Pin configuration
         super().__init__(driver_ids, encoder_ids)  # call super class's "__init__"
         # Constants
-        self.k_p = 0.1
+        self.k_p = 0.05
         self.k_i = 0.0
-        self.k_d = 0.1
+        self.k_d = 0.05
         self.freq_reg = 50  # Hz
         # Variables
         self.reg_vel_counter = 0
@@ -52,7 +52,7 @@ class WheelController(WheelDriver):
             self.reg_vel_counter += 1
 
     def set_velocity(self, ref_lin_vel):
-        self.reg_vel_counter = 0        
+        self.reg_vel_counter = 0
         if ref_lin_vel is not self.ref_lin_vel:
             self.ref_lin_vel = ref_lin_vel
             self.prev_error = 0.0
@@ -62,7 +62,7 @@ class WheelController(WheelDriver):
 # TEST
 if __name__ == "__main__":
     from utime import sleep
-    from machine import Pin
+    from machine import Pin, reset
 
     wc = WheelController(
         driver_ids=(6, 7, 8),
@@ -73,9 +73,9 @@ if __name__ == "__main__":
     #     encoder_ids=(21, 20),
     # )
     for i in range(400):
-        if 24 <= i <= 100:  # step up @ t=0.5 s
+        if 24 <= i <= 300:  # step up @ t=0.5 s
             wc.set_velocity(0.4)
-        elif i >= 200:  # step down @ t=1.5 s
+        elif i >= 300:  # step down @ t=1.5 s
             wc.set_velocity(0.0)
         print(
             f"Reference velocity={wc.ref_lin_vel} m/s, Measured velocity={wc.meas_lin_vel} m/s"
