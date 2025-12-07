@@ -5,15 +5,16 @@ Rename this script to main.py, then upload to the pico board.
 import sys
 import select
 from diff_drive_controller import DiffDriveController
-from machine import freq, reset
+from machine import freq
 from utime import ticks_us
 
 # SETUP
 # Overclock
-freq(200_000_000)  # Pico 2 original: 150_000_000
+freq(300_000_000)  # Pico 2 original: 150_000_000
 # Instantiate robot
-balle = DiffDriveController(
-    left_ids=((6, 7, 8), (11, 10)), right_ids=((2, 3, 4), (21, 20))
+diff_driver = DiffDriveController(
+    right_wheel_ids=((15, 13, 14), (10, 11)),
+    left_wheel_ids=((16, 18, 17), (20, 19)),
 )
 # Create a poll to receive messages from host machine
 cmd_vel_listener = select.poll()
@@ -26,15 +27,15 @@ tic = ticks_us()
 while True:
     for msg, _ in event:
         buffer = msg.readline().strip().split(",")
-        # print(f"{balle.lin_vel},{balle.ang_vel}")
+        # print(f"{diff_driver.lin_vel},{diff_driver.ang_vel}")
         if len(buffer) == 2:
             target_lin_vel = float(buffer[0])
             target_ang_vel = float(buffer[1])
-            balle.set_vels(target_lin_vel, target_ang_vel)
+            diff_driver.set_vels(target_lin_vel, target_ang_vel)
     toc = ticks_us()
     if toc - tic >= 10000:
-        meas_lin_vel, meas_ang_vel = balle.get_vels()
+        meas_lin_vel, meas_ang_vel = diff_driver.get_vels()
         out_msg = f"{meas_lin_vel}, {meas_ang_vel}\n"
-#         out_msg = "PICO\n"
+        #         out_msg = "PICO\n"
         sys.stdout.write(out_msg)
         tic = ticks_us()
