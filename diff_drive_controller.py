@@ -39,13 +39,17 @@ if __name__ == "__main__":
     )
 
     # LOOP
-    for i in range(500):
-        if i >= 24:  # step up @ t=0.5 s
-            ddc.set_vels(0.2, 0.0)
+    for i in range(400):
+        if 24 < i <= 174:  # step up @ t=0.5 s
+            ddc.set_vels(0.5, 0.0)
+        elif 174 < i <= 299:  # step down @ t=2s
+            ddc.set_vels(0.0, 0.0)
+        elif i == 349:
+            print("No command given in the past 1 second, cut off.")
         meas_lin_vel, meas_ang_vel = ddc.get_vels()
-        print(
-            f"target: {ddc.left_wheel.ref_lin_vel} m/s, {ddc.right_wheel.ref_lin_vel} m/s"
-        )
+        # print(
+        #     f"target: {ddc.left_wheel.ref_lin_vel} m/s, {ddc.right_wheel.ref_lin_vel} m/s"
+        # )
         print(f"Velocity={meas_lin_vel} m/s, {meas_ang_vel} rad/s")
         sleep(0.02)
     ddc.set_vels(0.0, 0.0)

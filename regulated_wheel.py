@@ -6,9 +6,9 @@ class RegulatedWheel(SentientWheel):
     def __init__(self, driver_ids: list | tuple, encoder_ids: list | tuple) -> None:
         super().__init__(driver_ids, encoder_ids)
         # Constants
-        self.k_p = 0.2
+        self.k_p = 0.09
         self.k_i = 0.0
-        self.k_d = 0.1
+        self.k_d = 0.0
         self.reg_freq = 50  # Hz
         # Variables
         self.reg_vel_counter = 0
@@ -27,11 +27,9 @@ class RegulatedWheel(SentientWheel):
 
     def regulate_velocity(self, timer):
         if self.reg_vel_counter > self.reg_freq:
+            self.stop()
             self.ref_lin_vel = 0.0
             self.prev_error = 0.0
-        # if self.ref_lin_vel == 0.0 or self.reg_vel_counter > self.reg_freq:
-        #     self.stop()
-        #     self.prev_error = 0.0
         else:
             self.error = self.ref_lin_vel - self.meas_lin_vel  # ang_vel also works
             self.error_inte += self.error
@@ -65,19 +63,21 @@ if __name__ == "__main__":
     """ Use following tuning PID"""
     from utime import sleep
 
-    rw = RegulatedWheel(
-        driver_ids=(16, 18, 17),
-        encoder_ids=(20, 19),
-    )  # left wheel
     # rw = RegulatedWheel(
-    #     driver_ids=(15, 13, 14),
-    #     encoder_ids=(10, 11),
-    # )  # right wheel
+    #     driver_ids=(16, 18, 17),
+    #     encoder_ids=(20, 19),
+    # )  # left wheel
+    rw = RegulatedWheel(
+        driver_ids=(15, 13, 14),
+        encoder_ids=(10, 11),
+    )  # right wheel
     for i in range(400):
-        if 24 <= i <= 300:  # step up @ t=0.5 s
-            rw.set_wheel_velocity(0.3)
-        elif i >= 300:  # step down @ t=1.5 s
+        if 24 < i <= 174:  # step up @ t=0.5s
+            rw.set_wheel_velocity(0.1)
+        elif 174 < i <= 299:  # step down @ t=2s
             rw.set_wheel_velocity(0.0)
+        elif i == 349:
+            print("No command given in the past 1 second, cut off.")
         print(
             f"Reference velocity={rw.ref_lin_vel} m/s, Measured velocity={rw.meas_lin_vel} m/s"
         )

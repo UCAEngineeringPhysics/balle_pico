@@ -4,7 +4,7 @@ from machine import Pin, PWM
 class BaseMotor:
     def __init__(self, pwm_id, in1_id, in2_id) -> None:
         self.pwm_pin = PWM(Pin(pwm_id))
-        self.pwm_pin.freq(1000)
+        self.pwm_pin.freq(2000)
         self.in1_pin = Pin(in1_id, Pin.OUT)
         self.in2_pin = Pin(in2_id, Pin.OUT)
 
