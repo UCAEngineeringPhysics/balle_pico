@@ -8,17 +8,47 @@ class EncodedMotor(BaseMotor):
         # Pin configuration
         self.enca_pin = Pin(encoder_ids[0], Pin.IN)
         self.encb_pin = Pin(encoder_ids[1], Pin.IN)
-        self.enca_pin.irq(trigger=Pin.IRQ_RISING, handler=self.update_counts)
-        # zero out encoder counts
-        self.reset_counts()
+        self.enca_pin.irq(
+            trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.update_counts_a
+        )
+        self.encb_pin.irq(
+            trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.update_counts_b
+        )
+        # Variables
+        self.enca_val = self.enca_pin.value()
+        self.encb_val = self.encb_pin.value()
+        self.encoder_counts = 0
+        self.prev_counts = 0
+        self.meas_ang_vel = 0.0
+        self.meas_lin_vel = 0.0
 
-    def update_counts(self, pin):
-        if self.encb_pin.value() == pin.value():  # A channel RISE later than B channel
-            self.encoder_counts -= 1
+    def update_counts_a(self, pin):
+        self.enca_val = pin.value()
+        if self.enca_val == 1:
+            if self.encb_val == 0:  # a=1, b=0
+                self.encoder_counts += 1
+            else:  # a=1, b=1
+                self.encoder_counts -= 1
         else:
-            self.encoder_counts += 1
+            if self.encb_val == 0:  # a=0, b=0
+                self.encoder_counts -= 1
+            else:  # a=0, b=1
+                self.encoder_counts += 1
 
-    def reset_counts(self):
+    def update_counts_b(self, pin):
+        self.encb_val = pin.value()
+        if self.encb_val == 1:
+            if self.enca_val == 0:  # b=1, a=0
+                self.encoder_counts -= 1
+            else:  # b=1, a=1
+                self.encoder_counts += 1
+        else:
+            if self.enca_val == 0:  # b=0, a=0
+                self.encoder_counts += 1
+            else:  # b=0, a=1
+                self.encoder_counts -= 1
+
+    def reset_encoder_counts(self):
         self.encoder_counts = 0
 
 
