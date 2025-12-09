@@ -28,6 +28,7 @@ class RegulatedWheel(SentientWheel):
     def regulate_velocity(self, timer):
         if self.reg_vel_counter > self.reg_freq:
             self.stop()
+            self.reset_encoder_counts()
             self.ref_lin_vel = 0.0
             self.prev_error = 0.0
         else:
@@ -73,7 +74,7 @@ if __name__ == "__main__":
     )  # right wheel
     for i in range(400):
         if 24 < i <= 174:  # step up @ t=0.5s
-            rw.set_wheel_velocity(0.1)
+            rw.set_wheel_velocity(-0.1)
         elif 174 < i <= 299:  # step down @ t=2s
             rw.set_wheel_velocity(0.0)
         elif i == 349:
