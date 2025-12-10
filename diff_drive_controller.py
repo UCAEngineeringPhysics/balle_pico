@@ -1,5 +1,4 @@
 from regulated_wheel import RegulatedWheel
-from machine import Pin
 
 
 class DiffDriveController:
