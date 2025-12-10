@@ -6,6 +6,10 @@ CLAW_MAX = 2_050_000
 CLAW_MIN = 1_550_000
 CLAW_MID = (CLAW_MAX + CLAW_MIN) // 2
 CLAW_RANGE = (CLAW_MAX - CLAW_MIN) // 2
+SHOULDER_MAX = 2_400_000
+SHOULDER_MIN = 700_000
+SHOULDER_MID = (CLAW_MAX + CLAW_MIN) // 2
+SHOULDER_RANGE = (CLAW_MAX - CLAW_MIN) // 2
 
 
 class ArmController:
@@ -21,6 +25,8 @@ class ArmController:
         self.claw_pulse_width = CLAW_MID
         # Constants
         self.claw.duty_ns(CLAW_MID)
+        self.left_shoulder.duty_ns(CLAW_MID)
+        self.right_shoulder.duty_ns(CLAW_MID)
         self.pw_inc = 50_000
 
     def close_claw(self, dir):  # Close claw
@@ -37,7 +43,26 @@ class ArmController:
             self.claw_pulse_width = CLAW_MIN
         self.claw.duty_ns(self.claw_pulse_width)
 
-    #
+    def lower_claw(self, dir=0):  # Lower arm
+        """
+        Raise/Lower claw
+        Args:
+            dir: -1/0/1, raise/maintain/lower
+        """
+        assert dir == 0 or dir == -1 or dir == 1
+        self.left_shoulder_pulse_width += self.pw_inc * dir
+        self.right_shoulder_pulse_width -= self.pw_inc * dir
+
+        if self.left_shoulder_pulse_width >= SHOULDER_MAX:
+            self.left_shoulder_pulse_width = SHOULDER_MAX
+            self.right_shoulder_pulse_width = SHOULDER_MIN
+
+        elif self.left_shoulder_pulse_width <= SHOULDER_MIN:
+            self.left_shoulder_pulse_width = SHOULDER_MIN
+            self.right_shoulder_pulse_width = SHOULDER_MAX
+
+        self.left_shoulder.duty_ns(self.left_shoulder_pulse_width)
+        self.right_shoulder.duty_ns(self.right_shoulder_pulse_width)
 
 
 # Example usage
@@ -46,4 +71,15 @@ if __name__ == "__main__":
 
     sleep(1)
     ac = ArmController(2, 3, 4)
-    ac.close_claw(0)
+    for _ in range(40):
+        ac.close_claw(-1)
+        sleep(0.1)
+    for _ in range(40):
+        ac.close_claw(1)
+        sleep(0.1)
+    for _ in range(40):
+        ac.lower_claw(-1)
+        sleep(0.1)
+    for _ in range(40):
+        ac.lower_claw(1)
+        sleep(0.1)
