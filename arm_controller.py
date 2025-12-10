@@ -1,15 +1,15 @@
 from machine import Pin, PWM
 from time import sleep
 
-SHOULDER_NEUTRAL = 1_400_000
+# SHOULDER_NEUTRAL = 1_400_000
 CLAW_MAX = 2_050_000
 CLAW_MIN = 1_550_000
 CLAW_MID = (CLAW_MAX + CLAW_MIN) // 2
 CLAW_RANGE = (CLAW_MAX - CLAW_MIN) // 2
 SHOULDER_MAX = 2_400_000
-SHOULDER_MIN = 700_000
-SHOULDER_MID = (CLAW_MAX + CLAW_MIN) // 2
-SHOULDER_RANGE = (CLAW_MAX - CLAW_MIN) // 2
+SHOULDER_MIN = 1_000_000
+SHOULDER_MID = 1_400_000
+# SHOULDER_RANGE = (CLAW_MAX - CLAW_MIN) // 2
 
 
 class ArmController:
@@ -23,6 +23,8 @@ class ArmController:
         self.right_shoulder.freq(50)
         # Variables
         self.claw_pulse_width = CLAW_MID
+        self.left_shoulder_pulse_width = SHOULDER_MID
+        self.right_shoulder_pulse_width = SHOULDER_MID
         # Constants
         self.claw.duty_ns(CLAW_MID)
         self.left_shoulder.duty_ns(CLAW_MID)
@@ -55,11 +57,11 @@ class ArmController:
 
         if self.left_shoulder_pulse_width >= SHOULDER_MAX:
             self.left_shoulder_pulse_width = SHOULDER_MAX
-            self.right_shoulder_pulse_width = SHOULDER_MIN
+            self.right_shoulder_pulse_width = 2 * SHOULDER_MID - SHOULDER_MAX
 
         elif self.left_shoulder_pulse_width <= SHOULDER_MIN:
             self.left_shoulder_pulse_width = SHOULDER_MIN
-            self.right_shoulder_pulse_width = SHOULDER_MAX
+            self.right_shoulder_pulse_width = 2 * SHOULDER_MID - SHOULDER_MIN
 
         self.left_shoulder.duty_ns(self.left_shoulder_pulse_width)
         self.right_shoulder.duty_ns(self.right_shoulder_pulse_width)
