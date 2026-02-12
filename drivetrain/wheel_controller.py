@@ -3,14 +3,13 @@ from machine import Timer
 
 
 class WheelController(WheelDriver):
-    def __init__(self, driver_ids, encoder_ids):
-        # Pin configuration
-        super().__init__(driver_ids, encoder_ids)  # call super class's "__init__"
+    def __init__(self, driver_ids: list | tuple, encoder_ids: list | tuple) -> None:
+        super().__init__(driver_ids, encoder_ids)
         # Constants
-        self.k_p = 0.1
+        self.k_p = 0.25
         self.k_i = 0.0
-        self.k_d = 0.1
-        self.freq_reg = 50  # Hz
+        self.k_d = 0.05
+        self.reg_freq = 50  # Hz
         # Variables
         self.reg_vel_counter = 0
         self.duty = 0.0
@@ -21,14 +20,14 @@ class WheelController(WheelDriver):
         self.ref_lin_vel = 0.0
         # PID controller config
         self.vel_reg_timer = Timer(
-            freq=self.freq_reg,
+            freq=self.reg_freq,
             mode=Timer.PERIODIC,
-            callback=self._regulate_velocity,
+            callback=self.regulate_velocity,
         )
 
-    def _regulate_velocity(self, timer):
-        if self.reg_vel_counter > self.freq_reg:
-            self.ref_lin_vel = 0.0
+    def regulate_velocity(self, timer):
+        if self.ref_lin_vel == 0.0 or self.reg_vel_counter > self.reg_freq:
+            self.stop()
             self.prev_error = 0.0
         else:
             self.error = self.ref_lin_vel - self.meas_lin_vel  # ang_vel also works
@@ -52,30 +51,32 @@ class WheelController(WheelDriver):
             self.reg_vel_counter += 1
 
     def set_velocity(self, ref_lin_vel):
-        self.reg_vel_counter = 0        
         if ref_lin_vel is not self.ref_lin_vel:
             self.ref_lin_vel = ref_lin_vel
             self.prev_error = 0.0
             self.error_inte = 0.0
+            self.reg_vel_counter = 0
 
 
-# TEST
 if __name__ == "__main__":
+    """ Use following tuning PID"""
     from utime import sleep
     from machine import Pin
 
-    wc = WheelController(
-        driver_ids=(6, 7, 8),
-        encoder_ids=(11, 10),
-    )
     # wc = WheelController(
-    #     driver_ids=(2, 3, 4),
-    #     encoder_ids=(21, 20),
-    # )
-    for i in range(400):
-        if 24 <= i <= 100:  # step up @ t=0.5 s
-            wc.set_velocity(0.4)
-        elif i >= 200:  # step down @ t=1.5 s
+    #     driver_ids=(16, 17, 18),
+    #     encoder_ids=(27, 26),
+    # )  # left
+    wc = WheelController(
+        driver_ids=(21, 20, 19),
+        encoder_ids=(7, 6),
+    )  # right
+
+    # LOOP
+    for i in range(100):
+        if i == 25:  # step up @ t=0.5s
+            wc.set_velocity(-0.4)
+        elif i == 80:  # step down @ t=1.6s
             wc.set_velocity(0.0)
         print(
             f"Reference velocity={wc.ref_lin_vel} m/s, Measured velocity={wc.meas_lin_vel} m/s"

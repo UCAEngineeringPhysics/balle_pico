@@ -39,8 +39,8 @@ if __name__ == "__main__":
     from utime import sleep
 
     # SETUP
-    # wd = WheelDriver((6, 7, 8), (11, 10))  # left
-    wd = WheelDriver((2, 3, 4), (21, 20))  # right
+    wd = WheelDriver((16, 17, 18), (27, 26))  # left
+    # wd = WheelDriver((21, 20, 19), (7, 6))  # right
 
     # LOOP
     for i in range(100):
