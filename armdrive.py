@@ -51,7 +51,7 @@ class ArmDrive:
 # Example usage
 if __name__ == "__main__":
     from utime import sleep
-    ad = ArmDrive(12, 13)
+    ad = ArmDrive(14, 13) # 15, 14, 13
     for _ in range(20):
         ad.close_claw()
         sleep(0.1)
