@@ -1,4 +1,4 @@
-from wheel_controller import WheelController
+from mobile_control.wheel_controller import WheelController
 
 
 class DiffDriveController:
@@ -11,7 +11,7 @@ class DiffDriveController:
         self.meas_ang_vel = 0.0
 
         # Constants
-        self.WHEEL_SEP = 0.52  # wheel separation in meters
+        self.WHEEL_SEP = 0.51  # wheel separation in meters
 
     def get_vels(self):
         """
@@ -42,12 +42,12 @@ if __name__ == "__main__":
     # freq(300_000_000)
     # SETUP
     ddc = DiffDriveController(
-        left_ids=((16, 17, 18), (27, 26)), right_ids=((21, 20, 19), (7, 6))
+        left_ids=((21, 19, 20), (6, 7)), right_ids=((16, 18, 17), (26, 27))
     )
 
     for i in range(500):
         if i >= 24:  # step up @ t=0.5 s
-            ddc.set_vels(-0.2, -0.2)
+            ddc.set_vels(-0.2, 0.2)
         meas_lin_vel, meas_ang_vel = ddc.get_vels()
         print(f"Velocity={meas_lin_vel} m/s, {meas_ang_vel} rad/s")
         sleep(0.02)

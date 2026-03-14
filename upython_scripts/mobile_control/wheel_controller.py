@@ -1,6 +1,8 @@
-from wheel_driver import WheelDriver
+from mobile_control.wheel_driver import WheelDriver
 from machine import Timer
 
+def clamp(x, min_val, max_val):
+    return max(min_val, min(x, max_val))
 
 class WheelController(WheelDriver):
     def __init__(self, driver_ids: list | tuple, encoder_ids: list | tuple) -> None:
@@ -39,6 +41,7 @@ class WheelController(WheelDriver):
                 + self.k_i * self.error_inte
                 + self.k_d * self.error_diff
             )
+            inc_duty = clamp(inc_duty, -0.03, 0.03)
             self.duty = self.duty + inc_duty
             if self.duty > 0:
                 if self.duty > 1.0:
@@ -63,21 +66,21 @@ if __name__ == "__main__":
     from utime import sleep
     from machine import Pin
 
-    # wc = WheelController(
-    #     driver_ids=(16, 17, 18),
-    #     encoder_ids=(27, 26),
-    # )  # left
     wc = WheelController(
-        driver_ids=(21, 20, 19),
-        encoder_ids=(7, 6),
-    )  # right
+        driver_ids=(16, 18, 17),
+        encoder_ids=(26, 27),
+    )  # left
+    # wc = WheelController(
+    #     driver_ids=(21, 19, 20),
+    #     encoder_ids=(6, 7),
+    # )  # right
 
     # LOOP
     for i in range(100):
         if i == 25:  # step up @ t=0.5s
-            wc.set_velocity(0.1)
+            wc.set_velocity(0.2)
         elif i == 80:  # step down @ t=1.6s
-            wc.set_velocity(0.3)
+            wc.set_velocity(0.0)
         print(
             f"Reference velocity={wc.ref_lin_vel} m/s, Measured velocity={wc.meas_lin_vel} m/s"
         )

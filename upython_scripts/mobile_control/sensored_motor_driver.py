@@ -1,4 +1,4 @@
-from motor_driver import MotorDriver
+from mobile_control.motor_driver import MotorDriver
 from machine import Pin
 
 
@@ -55,8 +55,8 @@ if __name__ == "__main__":
     from utime import sleep
 
     # SETUP
-    # smd = SensoredMotorDriver((16, 17, 18), (27, 26))  # left
-    smd = SensoredMotorDriver((21, 20, 19), (7, 6))  # right
+    smd = SensoredMotorDriver((16, 18, 17), (26, 27))  # left
+    # smd = SensoredMotorDriver((21, 19, 20), (6, 7))  # right
 
     # LOOP
     # for i in range(1000):  # for manual spin
