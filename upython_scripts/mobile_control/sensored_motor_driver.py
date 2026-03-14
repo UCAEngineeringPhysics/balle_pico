@@ -55,8 +55,8 @@ if __name__ == "__main__":
     from utime import sleep
 
     # SETUP
-    smd = SensoredMotorDriver((16, 18, 17), (26, 27))  # left
-    # smd = SensoredMotorDriver((21, 19, 20), (6, 7))  # right
+    # smd = SensoredMotorDriver((16, 18, 17), (26, 27))  # right
+    smd = SensoredMotorDriver((21, 19, 20), (6, 7))  # left
 
     # LOOP
     # for i in range(1000):  # for manual spin

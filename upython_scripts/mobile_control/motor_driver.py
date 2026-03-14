@@ -33,8 +33,8 @@ if __name__ == "__main__":
     from time import sleep
 
     # SETUP
-    md = MotorDriver(pwm_id=16, ina_id=18, inb_id=17)  # right
-    # md = MotorDriver(pwm_id=21, ina_id=19, inb_id=20)  # left
+    # md = MotorDriver(pwm_id=16, ina_id=18, inb_id=17)  # right
+    md = MotorDriver(pwm_id=21, ina_id=19, inb_id=20)  # left
 
     # LOOP
     for i in range(100):

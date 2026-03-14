@@ -69,11 +69,11 @@ if __name__ == "__main__":
     wc = WheelController(
         driver_ids=(16, 18, 17),
         encoder_ids=(26, 27),
-    )  # left
+    )  # right
     # wc = WheelController(
     #     driver_ids=(21, 19, 20),
     #     encoder_ids=(6, 7),
-    # )  # right
+    # )  # left
 
     # LOOP
     for i in range(100):
