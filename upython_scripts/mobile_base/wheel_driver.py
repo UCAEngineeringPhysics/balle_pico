@@ -1,4 +1,4 @@
-from mobile_control.sensored_motor_driver import SensoredMotorDriver
+from mobile_base.sensored_motor_driver import SensoredMotorDriver
 from machine import Timer
 from math import pi
 

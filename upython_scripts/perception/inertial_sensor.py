@@ -7,6 +7,7 @@ class MPU6050:
     def __init__(self, pow_id=3, scl_id=5, sda_id=4, i2c_addr=0x68, dlpf_level=4):
         self.board_led = Pin(25, Pin.OUT)
         self.pow_pin = Pin(pow_id, Pin.OUT, value=1)
+        sleep(0.5)
         self.i2c = I2C(0, scl=Pin(scl_id), sda=Pin(sda_id), freq=400_000)
         self.i2c_addr = i2c_addr
         self.i2c.writeto_mem(
@@ -106,7 +107,7 @@ if __name__ == "__main__":
     from utime import ticks_ms, sleep_ms
 
     # SETUP
-    sensor = MPU6050(scl_id=5, sda_id=4, i2c_addr=0x68)
+    sensor = MPU6050()
 
     # LOOP
     while True:

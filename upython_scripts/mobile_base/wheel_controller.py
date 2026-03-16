@@ -1,8 +1,10 @@
-from mobile_control.wheel_driver import WheelDriver
+from mobile_base.wheel_driver import WheelDriver
 from machine import Timer
+
 
 def clamp(x, min_val, max_val):
     return max(min_val, min(x, max_val))
+
 
 class WheelController(WheelDriver):
     def __init__(self, driver_ids: list | tuple, encoder_ids: list | tuple) -> None:
@@ -88,3 +90,4 @@ if __name__ == "__main__":
     # Terminate
     wc.disable()
     print("Wheel disabled")
+

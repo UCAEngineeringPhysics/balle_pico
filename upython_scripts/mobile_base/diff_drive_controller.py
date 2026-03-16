@@ -1,4 +1,4 @@
-from mobile_control.wheel_controller import WheelController
+from mobile_base.wheel_controller import WheelController
 
 
 class DiffDriveController:
@@ -39,6 +39,7 @@ if __name__ == "__main__":
     from utime import sleep
     from math import pi
     from machine import freq
+
     # freq(300_000_000)
     # SETUP
     ddc = DiffDriveController(

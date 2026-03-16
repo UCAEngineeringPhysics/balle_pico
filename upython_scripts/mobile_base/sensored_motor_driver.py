@@ -1,4 +1,4 @@
-from mobile_control.motor_driver import MotorDriver
+from mobile_base.motor_driver import MotorDriver
 from machine import Pin
 
 
@@ -83,3 +83,4 @@ if __name__ == "__main__":
     # TERMINATE THE CHICKEN NOODLE SOUP
     smd.disable()
     print("Motor driver disabled")
+
