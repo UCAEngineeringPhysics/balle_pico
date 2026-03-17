@@ -18,7 +18,6 @@ imu = MPU6050(pow_id=3, scl_id=5, sda_id=4, i2c_addr=0x68)
 mobile_base = DiffDriveController(
     left_ids=((21, 19, 20), (6, 7)), right_ids=((16, 18, 17), (26, 27))
 )
-mobile_base.awaken()
 pico_messenger = select.poll()  # create a poll object
 pico_messenger.register(sys.stdin, select.POLLIN)  # peek at serial port input
 # Constants
