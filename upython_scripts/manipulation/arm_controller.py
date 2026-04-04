@@ -1,11 +1,17 @@
 from machine import Pin, PWM
 from time import sleep
 
+
 SHOULDER_NEUTRAL = 1_400_000  # nano sec
+SHOULDER_MAX = 2_400_000  # nano sec
+SHOULDER_MIN = 700_000  # nano sec
 CLAW_NEUTRAL = 1_800_000
+CLAW_MAX = 2_500_000
+CLAW_MIN = 1_550_000
 
 
 class ArmController:
+    # TODO: timer for setting target positions
     def __init__(self, claw_pin, arm_pin_a, arm_pin_b):
         self.claw_servo = PWM(Pin(claw_pin))
         self.shoulder_servo_a = PWM(Pin(arm_pin_a))

@@ -6,6 +6,7 @@ import sys
 from utime import ticks_us, ticks_diff
 import select
 from machine import freq
+from manipulation.arm_controller import ArmController
 from mobile_base.diff_drive_controller import DiffDriveController
 from perception.inertial_sensor import MPU6050
 
@@ -15,6 +16,7 @@ ALPHA = 0.95  # weight for gyro measured angular velocity
 freq(240_000_000)  # Pico2 original: 150_000_000
 # Instantiate robot
 imu = MPU6050(pow_id=3, scl_id=5, sda_id=4, i2c_addr=0x68)
+manipulator = ArmController(15, 14, 13)
 mobile_base = DiffDriveController(
     left_ids=((21, 19, 20), (6, 7)), right_ids=((16, 18, 17), (26, 27))
 )
