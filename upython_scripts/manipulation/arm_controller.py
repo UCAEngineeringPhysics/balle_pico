@@ -27,7 +27,7 @@ class ArmController:
             callback=self.set_joint_positions,
         )
         # Variables
-        self.claw_target = CLAW_NEUTRAL
+        self.claw_target = CLAW_MAX
         self.shoulder_a_target = SHOULDER_NEUTRAL
         self.shoulder_b_target = SHOULDER_NEUTRAL
 
@@ -77,10 +77,10 @@ if __name__ == "__main__":
 
     sleep(1)
     ac = ArmController(15, 13, 14)
-    for _ in range(80):
-        ac.close_claw(10_000)
-        sleep(0.1)
-        print(f"Closing claw duty cycle: {ac.claw_duty}")
+#     for _ in range(80):
+#         ac.close_claw(10_000)
+#         sleep(0.1)
+#         print(f"Closing claw duty cycle: {ac.claw_duty}")
 #     for _ in range(20):
 #         ac.close_claw(-20_000)
 #         sleep(0.1)
