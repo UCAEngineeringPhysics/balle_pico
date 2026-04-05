@@ -2,13 +2,13 @@ from machine import Pin, PWM, Timer
 from time import sleep
 
 
-SHOULDER_NEUTRAL = 1_400_000  # nano sec
-SHOULDER_MAX = 2_400_000  # nano sec
-SHOULDER_MIN = 700_000  # nano sec
+SHOULDER_NEUTRAL = 1_500_000  # nano sec
+SHOULDER_MAX = 2_200_000
+SHOULDER_MIN = 1_000_000
 CLAW_NEUTRAL = 1_800_000
-CLAW_MAX = 2_500_000
+CLAW_MAX = 2_550_000
 CLAW_MIN = 1_550_000
-PULSE_WIDTH_INC_STEP = 10_000
+PULSE_WIDTH_INC_STEP = 5_000
 
 
 class ArmController:
@@ -25,34 +25,43 @@ class ArmController:
         self.shoulder_a.duty_ns(SHOULDER_NEUTRAL)
         self.shoulder_b.duty_ns(SHOULDER_NEUTRAL)
         # Variables
-        self.pulse_width_clw = CLAW_NEUTRAL
-        self.pulse_width_sha = SHOULDER_NEUTRAL
-        self.pulse_width_shb = SHOULDER_NEUTRAL
-        self.target_pulse_width_clw = CLAW_NEUTRAL
-        self.target_pulse_width_sha = SHOULDER_NEUTRAL
-        self.target_pulse_width_shb = SHOULDER_NEUTRAL
+        self.pulse_width_claw = CLAW_NEUTRAL
+        self.pulse_width_shoa = SHOULDER_NEUTRAL
+        self.pulse_width_shob = SHOULDER_NEUTRAL
+        self.target_claw = CLAW_NEUTRAL
+        self.target_shoa = SHOULDER_NEUTRAL
+        self.target_shob = SHOULDER_NEUTRAL
         # Set joint pos timer
         self.joints_set_timer = Timer(
-            freq=100,
+            freq=50,
             mode=Timer.PERIODIC,
             callback=self.manipulate_joints,
         )
 
     def set_joint_positions(
         self,
-        target_pulse_width_clw=CLAW_NEUTRAL,
-        target_pulse_width_sha=SHOULDER_NEUTRAL,
+        target_claw=CLAW_NEUTRAL,
+        target_shoa=SHOULDER_NEUTRAL,
     ):
-        self.target_pulse_width_clw = target_pulse_width_clw
-        self.target_pulse_width_sha = target_pulse_width_sha
-        self.target_pulse_width_shb = SHOULDER_NEUTRAL - (
-            target_pulse_width_sha - SHOULDER_NEUTRAL
-        )
+        self.target_claw = target_claw
+        self.target_shoa = target_shoa
+        self.target_shob = SHOULDER_NEUTRAL - (target_shoa - SHOULDER_NEUTRAL)
 
     def manipulate_joints(self, timer):
-        diff_pulse_width_clw = self.target_pulse_width_clw - self.pulse_width_clw
-        self.pulse_width_clw = max(min(diff_pulse_width_clw, PULSE_WIDTH_INC_STEP), -PULSE_WIDTH_INC_STEP)
-        self.claw.duty_ns(self.pulse_width_clw)
+        diff_claw = self.target_claw - self.pulse_width_claw
+        diff_shoa = self.target_shoa - self.pulse_width_shoa
+        self.pulse_width_claw += max(
+            min(diff_claw, PULSE_WIDTH_INC_STEP), -PULSE_WIDTH_INC_STEP
+        )
+        self.pulse_width_shoa += max(
+            min(diff_shoa, PULSE_WIDTH_INC_STEP), -PULSE_WIDTH_INC_STEP
+        )
+        self.pulse_width_shob -= max(
+            min(diff_shoa, PULSE_WIDTH_INC_STEP), -PULSE_WIDTH_INC_STEP
+        )
+        self.claw.duty_ns(self.pulse_width_claw)
+        self.shoulder_a.duty_ns(self.pulse_width_shoa)
+        self.shoulder_b.duty_ns(self.pulse_width_shob)
 
     # def set_neutral(self):
     #     self.shoulder_servo_a.duty_ns(SHOULDER_NEUTRAL)
@@ -95,8 +104,8 @@ if __name__ == "__main__":
 
     ac = ArmController(15, 13, 14)
     sleep(1)
-    ac.set_joint_positions(CLAW_NEUTRAL, SHOULDER_NEUTRAL)
-    sleep(10)
+    ac.set_joint_positions(CLAW_MAX, SHOULDER_MIN)
+    sleep(5)
 
 #     for _ in range(80):
 #         ac.close_claw(10_000)
