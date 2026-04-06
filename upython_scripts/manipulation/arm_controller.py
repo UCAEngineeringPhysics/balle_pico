@@ -2,11 +2,13 @@ from machine import Pin, PWM, Timer
 from time import sleep
 
 
-SHOULDER_UP = 1_500_000  # nano sec
-SHOULDER_DOWN = 500_000
-CLAW_OPEN = 1_800_000
+# CONSTANTS
+CLAW_OPEN = 1_800_000  # nano sec
 CLAW_CLOSE = 2_550_000
-PULSE_WIDTH_INC_STEP = 5_000
+SHOULDER_UP = 1_500_000
+SHOULDER_MID = 1_000_000
+SHOULDER_DOWN = 500_000
+PULSE_WIDTH_INC_STEP = 5_000  # servo speed
 
 
 class ArmController:
@@ -79,20 +81,43 @@ class ArmController:
 if __name__ == "__main__":
     from utime import sleep
 
+    print("To ease the shoulder servos, please lift the arm upright!")
+    # SAFETY CHECK
+    is_up = "n"
+    while is_up != "y":
+        print("Please lift arms.")
+        is_up = input("Are the arms lifted upright? (y/n)")
+
+    # SETUP
     ac = ArmController(15, 13, 14)
     sleep(2)
     # Set arm configs
-    ac.set_joint_positions(CLAW_OPEN, SHOULDER_DOWN)
-    while ac.is_target_reached is False:
-        sleep(0.1)
-    print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
-    
-    ac.set_joint_positions(CLAW_CLOSE, SHOULDER_DOWN)
+    ac.set_joint_positions(CLAW_OPEN, SHOULDER_DOWN)  # lower arms to ball
     while ac.is_target_reached is False:
         sleep(0.1)
     print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
 
-    ac.set_joint_positions(CLAW_CLOSE, SHOULDER_UP)
+    ac.set_joint_positions(CLAW_CLOSE, SHOULDER_DOWN)  # close claw, grab ball
+    while ac.is_target_reached is False:
+        sleep(0.1)
+    print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
+
+    ac.set_joint_positions(CLAW_CLOSE, SHOULDER_UP)  # raise arms
+    while ac.is_target_reached is False:
+        sleep(0.1)
+    print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
+
+    ac.set_joint_positions(CLAW_CLOSE, SHOULDER_MID)  # lower arms to bucket
+    while ac.is_target_reached is False:
+        sleep(0.1)
+    print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
+
+    ac.set_joint_positions(CLAW_OPEN, SHOULDER_MID)  # open claw, drop ball
+    while ac.is_target_reached is False:
+        sleep(0.1)
+    print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
+
+    ac.set_joint_positions(CLAW_OPEN, SHOULDER_UP)  # raise arm
     while ac.is_target_reached is False:
         sleep(0.1)
     print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
