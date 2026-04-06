@@ -3,10 +3,10 @@ from time import sleep
 
 
 SHOULDER_UP = 1_500_000  # nano sec
-SHOULDER_DOWN = 1_800_000
+SHOULDER_DOWN = 500_000
 CLAW_OPEN = 1_800_000
 CLAW_CLOSE = 2_550_000
-PULSE_WIDTH_INC_STEP = 4_000
+PULSE_WIDTH_INC_STEP = 5_000
 
 
 class ArmController:
@@ -29,6 +29,7 @@ class ArmController:
         self.target_claw = CLAW_OPEN
         self.target_shoa = SHOULDER_UP
         self.target_shob = SHOULDER_UP
+        self.is_target_reached = True
         # Set joint pos timer
         self.joints_set_timer = Timer(
             freq=25,
@@ -44,6 +45,7 @@ class ArmController:
         self.target_claw = target_claw
         self.target_shoa = target_shoa
         self.target_shob = SHOULDER_UP - (target_shoa - SHOULDER_UP)
+        self.is_target_reached = False
 
     def manipulate_joints(self, timer):
         diff_claw = self.target_claw - self.pulse_width_claw
@@ -60,6 +62,17 @@ class ArmController:
         self.claw.duty_ns(self.pulse_width_claw)
         self.shoulder_a.duty_ns(self.pulse_width_shoa)
         self.shoulder_b.duty_ns(self.pulse_width_shob)
+        # Check target reached or not
+        if all(
+            [
+                self.pulse_width_claw == self.target_claw,
+                self.pulse_width_shoa == self.target_shoa,
+                self.pulse_width_shob == self.target_shob,
+            ]
+        ):
+            self.is_target_reached = True
+        else:
+            self.is_target_reached = False
 
 
 # Example usage
@@ -68,5 +81,18 @@ if __name__ == "__main__":
 
     ac = ArmController(15, 13, 14)
     sleep(2)
-     
+    # Set arm configs
+    ac.set_joint_positions(CLAW_OPEN, SHOULDER_DOWN)
+    while ac.is_target_reached is False:
+        sleep(0.1)
+    print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
+    
+    ac.set_joint_positions(CLAW_CLOSE, SHOULDER_DOWN)
+    while ac.is_target_reached is False:
+        sleep(0.1)
+    print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
 
+    ac.set_joint_positions(CLAW_CLOSE, SHOULDER_UP)
+    while ac.is_target_reached is False:
+        sleep(0.1)
+    print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
