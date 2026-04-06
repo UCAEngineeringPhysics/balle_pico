@@ -11,14 +11,19 @@ from mobile_base.diff_drive_controller import DiffDriveController
 from perception.inertial_sensor import MPU6050
 
 # SETUP
-ALPHA = 0.95  # weight for gyro measured angular velocity
+ALPHA = 0.90  # weight for gyro measured angular velocity
 # Overclock
 freq(240_000_000)  # Pico2 original: 150_000_000
 # Instantiate robot
 imu = MPU6050(pow_id=3, scl_id=5, sda_id=4, i2c_addr=0x68)
-manipulator = ArmController(15, 14, 13)
+arm = ArmController(
+    claw_pin=15,
+    shoulder_a_pin=13,
+    shoulder_b_pin=14,
+)
 mobile_base = DiffDriveController(
-    left_ids=((21, 19, 20), (6, 7)), right_ids=((16, 18, 17), (26, 27))
+    left_ids=((21, 19, 20), (6, 7)),
+    right_ids=((16, 18, 17), (26, 27)),
 )
 pico_messenger = select.poll()  # create a poll object
 pico_messenger.register(sys.stdin, select.POLLIN)  # peek at serial port input
