@@ -1,7 +1,7 @@
 from machine import Pin, PWM
 from time import sleep
 
-SHOULDER_NEUTRAL = 1_400_000
+SHOULDER_NEUTRAL = 1_400_000  # nano sec
 
 CLAW_NEUTRAL = 1_800_000
 
@@ -12,49 +12,42 @@ class ArmController:
         self.shoulder_servo_a = PWM(Pin(arm_pin_a))
         self.shoulder_servo_b = PWM(Pin(arm_pin_b))
         self.claw_servo.freq(50)
-        self.shoulder_servo_a.freq(50) #LEFT
-        self.shoulder_servo_b.freq(50) #RIGHT
-
-        
-        
+        self.shoulder_servo_a.freq(50)
+        self.shoulder_servo_b.freq(50)
         # Set initial positions
         self.set_neutral()
         
     def set_neutral(self):
+        self.shoulder_servo_a.duty_ns(SHOULDER_NEUTRAL)
+        self.shoulder_servo_b.duty_ns(SHOULDER_NEUTRAL)
+        self.claw_servo.duty_ns(CLAW_NEUTRAL)
+        # Save neutral value as current value
         self.shoulder_duty_a = SHOULDER_NEUTRAL
         self.shoulder_duty_b = SHOULDER_NEUTRAL
         self.claw_duty = CLAW_NEUTRAL
 
-        self.shoulder_servo_a.duty_ns(self.shoulder_duty_a)
-        self.shoulder_servo_b.duty_ns(self.shoulder_duty_b)
-        self.claw_servo.duty_ns(self.claw_duty)
-        
-
-    def lower_claw(self, dc_inc=0):  # Lower arm
-        assert -50_000 <= dc_inc <= 50_000
+    def lower_claw(self, dc_inc=0):  # negtive dc_inc to raise arm
+        assert -50_000 <= dc_inc <= 50_000  # recommend dc increment: <20_000 ns 
         self.shoulder_duty_a += dc_inc
         self.shoulder_duty_b -= dc_inc
-
+        # Lowest
         if self.shoulder_duty_a >= 2_400_000:
             self.shoulder_duty_a = 2_400_000
             self.shoulder_duty_b = 700_000
-    
-            
+        # Highest
         elif self.shoulder_duty_a <= 700_000:
             self.shoulder_duty_a = 700_000
-            self.shoulder_duty_b = 2_400_000
-
+            self.shoulder_duty_b = 2_700_000
         self.shoulder_servo_a.duty_ns(self.shoulder_duty_a)
         self.shoulder_servo_b.duty_ns(self.shoulder_duty_b)
 
-
-    def close_claw(self, dc_inc=0):  # Close claw
+    def close_claw(self, dc_inc=0):
         assert -50_000 <= dc_inc <= 50_000
         self.claw_duty += dc_inc
-        if self.claw_duty >= 2_500_000:
+        if self.claw_duty >= 2_500_000:  #2_500_000
             self.claw_duty = 2_500_000
         elif self.claw_duty <= 1_550_000:
-            self.claw_duty = 1_550_000
+            self.claw_duty = 1_550_000 
         self.claw_servo.duty_ns(self.claw_duty)
         
 
