@@ -3,13 +3,13 @@ from time import sleep
 
 
 # CONSTANTS
-CLAW_OPEN = 1_800_000  # nano sec
-CLAW_CLOSE = 2_500_000
+CLAW_OPEN = 1_700_000  # nano sec
+CLAW_CLOSE = 1_000_000
 SHOULDER_UP = 1_500_000
 SHOULDER_MID = 1_000_000
 SHOULDER_DOWN = 550_000
-SHOULDER_OFFSET = 70_000
-PULSE_WIDTH_INC_STEP = 5_000  # servo speed
+SHOULDER_OFFSET = 100_000
+PULSE_WIDTH_INC_STEP = 8_000  # servo speed
 
 
 class ArmController:
@@ -49,8 +49,10 @@ class ArmController:
             self.is_target_reached = False
             self.target_claw = target_claw
             self.target_shoa = target_shoa
-            self.target_shob = SHOULDER_UP - (target_shoa - SHOULDER_UP) - SHOULDER_OFFSET
-        
+            self.target_shob = (
+                SHOULDER_UP - (target_shoa - SHOULDER_UP) - SHOULDER_OFFSET
+            )
+
     def manipulate_joints(self, timer):
         diff_claw = self.target_claw - self.pulse_width_claw
         diff_shoa = self.target_shoa - self.pulse_width_shoa
@@ -123,4 +125,3 @@ if __name__ == "__main__":
     while ac.is_target_reached is False:
         sleep(0.1)
     print(f"arm reached position: {ac.pulse_width_claw}, {ac.pulse_width_shoa}")
-
