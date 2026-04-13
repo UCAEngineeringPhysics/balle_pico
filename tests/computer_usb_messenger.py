@@ -1,0 +1,62 @@
+import serial
+from time import time, sleep
+
+# SETUP
+# Linux example: '/dev/ttyACM0', '/dev/ttyACM1'
+# Mac example: '/dev/cu.usbmodem1413301''
+# Windows example: 'COM3', 'COM4'
+SERIAL_PORT = "/dev/ttyACM0"
+BAUD_RATE = 115200
+# BAUD_RATE = 921600
+usb_messenger = serial.Serial(
+    SERIAL_PORT, BAUD_RATE, timeout=0.01
+)  # set error recovery duration half the pico talker's period
+print(f"Connected to {SERIAL_PORT}")
+# Variables
+tlvs_pos = [0.00, 0.10, 0.20, 0.30, 0.40]
+tlvs_neg = [0.00, -0.10, -0.20, -0.30, -0.40]
+targ_lin_vels = (
+    tlvs_pos + list(reversed(tlvs_pos)) + tlvs_neg + list(reversed(tlvs_neg))
+)
+tsho = [550000, 1000000, 1500000]
+tclw = [1000000, 1400000, 1700000]
+targ_sho_pw = tsho[-1]
+targ_clw_pw = tclw[-1]
+msg_id = 0
+sleep(3)  # Wait briefly for the connection to stabilize
+print("Starting communication... Press Ctrl+C to stop.")
+last_stamp = time()
+
+# LOOP
+try:
+    while True:
+        # Transmit data (TX)
+        current_stamp = time()
+        if (current_stamp - last_stamp) >= 0.5:  # 5Hz TX
+            if not msg_id % 10:
+                targ_sho_pw = tsho[msg_id % 3]
+                targ_clw_pw = tclw[msg_id % 3]
+            msg = (
+                f"{targ_lin_vels[msg_id % 20]:.3f},0.000,{targ_sho_pw},{targ_clw_pw}\n"
+            )
+            # Encode string to bytes and send
+            usb_messenger.write(msg.encode("utf-8"))
+            msg_id += 1
+
+            last_stamp = current_stamp
+
+        # Receive data (RX)
+        if usb_messenger.in_waiting > 0:
+            try:
+                # Read line, decode bytes to string, and strip whitespace
+                in_msg = usb_messenger.readline().decode("utf-8").strip()
+                if in_msg:
+                    print(f"Computer heard: {in_msg}")
+                else:
+                    print("No message received.")
+            except UnicodeDecodeError:
+                pass  # ignore decoding errors
+
+except KeyboardInterrupt:
+    print("\nCommunication stopped by user.")
+    usb_messenger.close()

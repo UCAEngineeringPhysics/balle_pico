@@ -1,4 +1,4 @@
-from sensored_motor_driver import SensoredMotorDriver
+from mobile_base.sensored_motor_driver import SensoredMotorDriver
 from machine import Timer
 from math import pi
 
@@ -14,7 +14,7 @@ class WheelDriver(SensoredMotorDriver):
         # Properties
         self.cpr = 64
         self.gear_ratio = 102.083
-        self.wheel_radius = 0.075  # diameter in mm -> radius in m
+        self.wheel_radius = 0.080  # diameter in mm -> radius in m
         self.freq_meas = 100  # Hz
 
         # Init timer for velocity probing
@@ -39,8 +39,8 @@ if __name__ == "__main__":
     from utime import sleep
 
     # SETUP
-    # wd = WheelDriver((6, 7, 8), (11, 10))  # left
-    wd = WheelDriver((2, 3, 4), (21, 20))  # right
+    wd = WheelDriver((16, 18, 17), (26, 27))  # right
+    # wd = WheelDriver((21, 19, 20), (6, 7))  # left
 
     # LOOP
     for i in range(100):
