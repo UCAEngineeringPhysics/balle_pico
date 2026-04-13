@@ -18,6 +18,10 @@ tlvs_neg = [0.00, -0.10, -0.20, -0.30, -0.40]
 targ_lin_vels = (
     tlvs_pos + list(reversed(tlvs_pos)) + tlvs_neg + list(reversed(tlvs_neg))
 )
+tsho = [550000, 1000000, 1500000]
+tclw = [1000000, 1400000, 1700000]
+targ_sho_pw = tsho[-1]
+targ_clw_pw = tclw[-1]
 msg_id = 0
 sleep(3)  # Wait briefly for the connection to stabilize
 print("Starting communication... Press Ctrl+C to stop.")
@@ -29,11 +33,16 @@ try:
         # Transmit data (TX)
         current_stamp = time()
         if (current_stamp - last_stamp) >= 0.5:  # 5Hz TX
-            msg = f"{targ_lin_vels[msg_id % 20]:.3f},0.000,2400000,1000000\n"
-            # msg = "0.3,0.000\n"
+            if not msg_id % 10:
+                targ_sho_pw = tsho[msg_id % 3]
+                targ_clw_pw = tclw[msg_id % 3]
+            msg = (
+                f"{targ_lin_vels[msg_id % 20]:.3f},0.000,{targ_sho_pw},{targ_clw_pw}\n"
+            )
             # Encode string to bytes and send
             usb_messenger.write(msg.encode("utf-8"))
             msg_id += 1
+
             last_stamp = current_stamp
 
         # Receive data (RX)
